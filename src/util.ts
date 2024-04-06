@@ -8,27 +8,43 @@ import { Interval, WeeklyTime } from './types';
  * @example isInInterval('M09:00 M09:30', 'M09:29') == true
  * @example isInInterval('M09:00 M09:30', 'M09:30') == false
  */
-export function isInInterval(interval: Interval, time: WeeklyTime): boolean {
-  return interval[0] <= time && time < interval[1];
-}
-
-export function unionIntervals(intervals: Interval[]): Interval[] {
-  const overlaps = calculateIntervalOverlap(intervals).map((ci) => ci.interval);
-
-  // Merge adjacent intervals
-  const result: Interval[] = [];
-  for (let i = 0; i < overlaps.length; i++) {
-    const overlap = overlaps[i]!;
-    const lastResult = result[result.length - 1];
-    if (lastResult?.[1] === overlap[0]) {
-      // eslint-disable-next-line prefer-destructuring
-      lastResult[1] = overlap[1];
-    } else {
-      result.push(overlap);
-    }
+export function isInInterval(interval: Interval | Interval[], time: WeeklyTime): boolean {
+  if (typeof interval[0] === 'number' && typeof interval[1] === 'number') {
+    return interval[0] <= time && time < interval[1];
   }
 
+  return interval.some((i) => isInInterval(i as Interval, time));
+}
+
+function simplifyOrderedSchedule(orderedSchedule: Interval[]): Interval[] {
+  // Merge adjacent intervals
+  const result: Interval[] = [];
+  for (let i = 0; i < orderedSchedule.length; i++) {
+    const interval = orderedSchedule[i]!;
+    const lastResult = result[result.length - 1];
+    if (lastResult?.[1] === interval[0]) {
+      // eslint-disable-next-line prefer-destructuring
+      lastResult[1] = interval[1];
+    } else {
+      result.push(interval);
+    }
+  }
   return result;
+}
+
+export function unionSchedules(intervals: Interval[] | Interval[][]): Interval[] {
+  if (intervals.length > 0 && Array.isArray(intervals[0]) && Array.isArray(intervals[0][0])) {
+    return unionSchedules((intervals as Interval[][]).flat(1));
+  }
+
+  const unioned = calculateIntervalOverlap(intervals as Interval[]).map((ci) => ci.interval);
+  return simplifyOrderedSchedule(unioned);
+}
+
+export function intersectSchedules(schedules: Interval[][]): Interval[] {
+  const overlaps = calculateScheduleOverlap(schedules);
+  const intersecting = overlaps.filter((overlap) => overlap.count === schedules.length).map((overlap) => overlap.interval);
+  return simplifyOrderedSchedule(intersecting);
 }
 
 export interface IntervalOverlapResult {
@@ -36,9 +52,9 @@ export interface IntervalOverlapResult {
   interval: Interval,
 }
 
-export function calculateScheduleIntervalOverlap(schedules: Interval[][]): IntervalOverlapResult[] {
+export function calculateScheduleOverlap(schedules: Interval[][]): IntervalOverlapResult[] {
   // Ensure each person's intervals don't overlap with themselves
-  const intervals = schedules.map(unionIntervals).flat();
+  const intervals = schedules.map(unionSchedules).flat();
 
   return calculateIntervalOverlap(intervals);
 }

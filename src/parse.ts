@@ -58,6 +58,6 @@ function parseInterval(interval: string): Interval {
 }
 
 export function parseIntervals(intervals: string): Interval[] {
-  if (!intervals) return [];
+  if (!intervals.trim()) return [];
   return intervals.split(',').map((ts) => parseInterval(ts.trim()));
 }

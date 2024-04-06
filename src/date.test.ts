@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { fromDate, mostRecentMondayStartUtc, toDate } from './date';
-import { WeeklyTime } from './parse';
+import { WeeklyTime } from './types';
 
 describe('mostRecentMondayStartUtc', () => {
   test.each([

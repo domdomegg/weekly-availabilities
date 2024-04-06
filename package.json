@@ -1,12 +1,12 @@
 {
-  "name": "weekly-availabilities",
+  "name": "weekly-time",
   "version": "0.0.0",
-  "description": "TypeScript library for handling recurring weekly availabilities, like `M07:30 M12:30, M22:00 T01:00, F07:30 F12:30`",
+  "description": "TypeScript library for handling recurring weekly time availabilities, like `M07:30 M12:30, M22:00 T01:00, F07:30 F12:30`",
   "license": "MIT",
   "author": "Adam Jones (domdomegg)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/domdomegg/weekly-availabilities.git"
+    "url": "https://github.com/domdomegg/weekly-time.git"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -16,6 +16,16 @@ describe('parseWeeklyTime', () => {
 });
 
 describe('parseIntervals', () => {
+  describe('empty string', () => {
+    test.each([
+      [''],
+      [' '],
+      ['  '],
+    ])('%s -> %s', (interval) => {
+      expect(parseIntervals(interval)).toEqual([]);
+    });
+  });
+
   describe('single intervals', () => {
     test.each([
       ['M00:00 M00:00', [0, 0]],
