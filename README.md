@@ -39,6 +39,11 @@ const howManyPeopleAreAvailable = wa.calculateScheduleOverlap([p1, p2, p3]);
 // F08:00 F09:00 - 3
 // F09:00 F10:00 - 2
 // F10:00 F14:00 - 1
+
+const availability = wa.parseIntervals('M09:00 M17:00');
+const blocked = wa.parseIntervals('M11:00 M13:00');
+const remaining = wa.subtractIntervals(availability, blocked);
+// M09:00 M11:00, M13:00 M17:00
 ```
 
 ## Contributing
