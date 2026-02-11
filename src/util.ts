@@ -82,3 +82,44 @@ const calculateIntervalOverlap = (intervals: Interval[]): IntervalOverlapResult[
 
   return (result as IntervalOverlapResult[]).filter((i) => i.count > 0 && i.interval[1] > i.interval[0]);
 };
+
+/** Subtract blocked intervals from availability intervals.
+ * Returns new availability with blocked times removed. */
+export function subtractIntervals(
+  availability: Interval[],
+  blocked: Interval[],
+): Interval[] {
+  if (blocked.length === 0) return availability;
+
+  const result: Interval[] = [];
+
+  /* eslint-disable no-restricted-syntax */
+  for (const [availStart, availEnd] of availability) {
+    let remaining: Interval[] = [[availStart, availEnd]];
+
+    for (const [blockStart, blockEnd] of blocked) {
+      const newRemaining: Interval[] = [];
+
+      for (const [remStart, remEnd] of remaining) {
+        // No overlap - keep the interval
+        if (blockEnd <= remStart || blockStart >= remEnd) {
+          newRemaining.push([remStart, remEnd]);
+        } else {
+          // Some overlap
+          if (remStart < blockStart) {
+            newRemaining.push([remStart, blockStart]);
+          }
+          if (remEnd > blockEnd) {
+            newRemaining.push([blockEnd, remEnd]);
+          }
+        }
+      }
+
+      remaining = newRemaining;
+    }
+
+    result.push(...remaining);
+  }
+
+  return result;
+}

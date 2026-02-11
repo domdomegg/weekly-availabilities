@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import {
-  calculateScheduleOverlap, intersectSchedules, isInInterval, unionSchedules,
+  calculateScheduleOverlap,
+  intersectSchedules,
+  isInInterval,
+  subtractIntervals,
+  unionSchedules,
 } from './util';
 import { Interval, WeeklyTime } from './types';
 
@@ -103,5 +107,66 @@ describe('isInInterval', () => {
     expect(isInInterval([1, 5] as Interval, 0.999 as WeeklyTime)).toBe(false);
     expect(isInInterval([[1, 3], [5, 8]] as Interval[], 4 as WeeklyTime)).toBe(false);
     expect(isInInterval([[1, 3], [5, 8]] as Interval[], 9 as WeeklyTime)).toBe(false);
+  });
+});
+
+describe('subtractIntervals', () => {
+  test('returns availability unchanged when blocked is empty', () => {
+    const availability = [
+      [100, 200],
+      [300, 400],
+    ] as Interval[];
+    const blocked: Interval[] = [];
+    expect(subtractIntervals(availability, blocked)).toEqual([
+      [100, 200],
+      [300, 400],
+    ]);
+  });
+
+  test('returns availability unchanged when blocked is entirely before', () => {
+    const availability = [[200, 300]] as Interval[];
+    const blocked = [[0, 100]] as Interval[];
+    expect(subtractIntervals(availability, blocked)).toEqual([[200, 300]]);
+  });
+
+  test('returns availability unchanged when blocked is entirely after', () => {
+    const availability = [[100, 200]] as Interval[];
+    const blocked = [[300, 400]] as Interval[];
+    expect(subtractIntervals(availability, blocked)).toEqual([[100, 200]]);
+  });
+
+  test('removes start of availability when blocked overlaps beginning', () => {
+    const availability = [[100, 300]] as Interval[];
+    const blocked = [[50, 150]] as Interval[];
+    expect(subtractIntervals(availability, blocked)).toEqual([[150, 300]]);
+  });
+
+  test('removes end of availability when blocked overlaps end', () => {
+    const availability = [[100, 300]] as Interval[];
+    const blocked = [[250, 350]] as Interval[];
+    expect(subtractIntervals(availability, blocked)).toEqual([[100, 250]]);
+  });
+
+  test('removes availability when blocked covers', () => {
+    const availability = [[100, 200]] as Interval[];
+    const blocked = [[100, 200]] as Interval[];
+    expect(subtractIntervals(availability, blocked)).toEqual([]);
+  });
+
+  test('handles multiple availability and blocked intervals', () => {
+    const availability = [
+      [0, 200],
+      [300, 500],
+    ] as Interval[];
+    const blocked = [
+      [50, 100],
+      [350, 400],
+    ] as Interval[];
+    expect(subtractIntervals(availability, blocked)).toEqual([
+      [0, 50],
+      [100, 200],
+      [300, 350],
+      [400, 500],
+    ]);
   });
 });
