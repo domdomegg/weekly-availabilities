@@ -1,6 +1,6 @@
 {
   "name": "weekly-availabilities",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "TypeScript library for handling recurring weekly time availabilities, like `M07:30 M12:30, M22:00 T01:00, F07:30 F12:30`",
   "license": "MIT",
   "author": "Adam Jones (domdomegg)",
