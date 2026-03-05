@@ -45,7 +45,7 @@ function parseInterval(interval: string): Interval {
   // If beginning > end, we have looped around the week
   // e.g. U23:00 M00:00
   // So the end of the interval should be the end of the week
-  if (beginning > end) {
+  if (beginning >= end) {
     if (end === 0) {
       // We handle this edge case because it is used to represent wrapping around to the end of the week, e.g. U23:00 M00:00
       // NB: we don't allow U23:00 M01:00 - this should be input as U23:00 M00:00, M00:00 M01:00

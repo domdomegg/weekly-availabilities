@@ -28,7 +28,7 @@ describe('parseIntervals', () => {
 
   describe('single intervals', () => {
     test.each([
-      ['M00:00 M00:00', [0, 0]],
+      ['M00:00 M00:00', [0, 168]], // full week: beginning === end === 0 is treated as wrap-around to end of week
       ['M00:00 M01:00', [0, 1]],
       ['M10:00 M15:00', [10, 15]],
       ['T00:00 R12:00', [24, 84]],
