@@ -1,4 +1,4 @@
-import { Interval, WeeklyTime } from './types';
+import {type Interval, type WeeklyTime} from './types';
 
 /**
  * Checks whether a time falls within an interval
@@ -9,117 +9,117 @@ import { Interval, WeeklyTime } from './types';
  * @example isInInterval('M09:00 M09:30', 'M09:30') == false
  */
 export function isInInterval(interval: Interval | Interval[], time: WeeklyTime): boolean {
-  if (typeof interval[0] === 'number' && typeof interval[1] === 'number') {
-    return interval[0] <= time && time < interval[1];
-  }
+	if (typeof interval[0] === 'number' && typeof interval[1] === 'number') {
+		return interval[0] <= time && time < interval[1];
+	}
 
-  return interval.some((i) => isInInterval(i as Interval, time));
+	return interval.some((i) => isInInterval(i as Interval, time));
 }
 
 function simplifyOrderedSchedule(orderedSchedule: Interval[]): Interval[] {
-  // Merge adjacent intervals
-  const result: Interval[] = [];
-  for (let i = 0; i < orderedSchedule.length; i++) {
-    const interval = orderedSchedule[i]!;
-    const lastResult = result[result.length - 1];
-    if (lastResult?.[1] === interval[0]) {
-      // eslint-disable-next-line prefer-destructuring
-      lastResult[1] = interval[1];
-    } else {
-      result.push(interval);
-    }
-  }
-  return result;
+	// Merge adjacent intervals
+	const result: Interval[] = [];
+	for (const interval of orderedSchedule) {
+		const lastResult = result[result.length - 1];
+		if (lastResult?.[1] === interval[0]) {
+			lastResult[1] = interval[1];
+		} else {
+			result.push(interval);
+		}
+	}
+
+	return result;
 }
 
 export function unionSchedules(intervals: Interval[] | Interval[][]): Interval[] {
-  if (intervals.length > 0 && Array.isArray(intervals[0]) && Array.isArray(intervals[0][0])) {
-    return unionSchedules((intervals as Interval[][]).flat(1));
-  }
+	if (intervals.length > 0 && Array.isArray(intervals[0]) && Array.isArray(intervals[0][0])) {
+		return unionSchedules((intervals as Interval[][]).flat(1));
+	}
 
-  const unioned = calculateIntervalOverlap(intervals as Interval[]).map((ci) => ci.interval);
-  return simplifyOrderedSchedule(unioned);
+	const unioned = calculateIntervalOverlap(intervals as Interval[]).map((ci) => ci.interval);
+	return simplifyOrderedSchedule(unioned);
 }
 
 export function intersectSchedules(schedules: Interval[][]): Interval[] {
-  const overlaps = calculateScheduleOverlap(schedules);
-  const intersecting = overlaps.filter((overlap) => overlap.count === schedules.length).map((overlap) => overlap.interval);
-  return simplifyOrderedSchedule(intersecting);
+	const overlaps = calculateScheduleOverlap(schedules);
+	const intersecting = overlaps.filter((overlap) => overlap.count === schedules.length).map((overlap) => overlap.interval);
+	return simplifyOrderedSchedule(intersecting);
 }
 
-export interface IntervalOverlapResult {
-  count: number,
-  interval: Interval,
-}
+export type IntervalOverlapResult = {
+	count: number;
+	interval: Interval;
+};
 
 export function calculateScheduleOverlap(schedules: Interval[][]): IntervalOverlapResult[] {
-  // Ensure each person's intervals don't overlap with themselves
-  const intervals = schedules.map(unionSchedules).flat();
+	// Ensure each person's intervals don't overlap with themselves
+	const intervals = schedules.map(unionSchedules).flat();
 
-  return calculateIntervalOverlap(intervals);
+	return calculateIntervalOverlap(intervals);
 }
 
 const calculateIntervalOverlap = (intervals: Interval[]): IntervalOverlapResult[] => {
-  const intervalEvents = intervals.flatMap((interval) => [
-    { type: 'start', at: interval[0] },
-    { type: 'end', at: interval[1] },
-  ]).sort((a, b) => a.at - b.at);
+	const intervalEvents = intervals.flatMap((interval) => [
+		{type: 'start', at: interval[0]},
+		{type: 'end', at: interval[1]},
+	]).sort((a, b) => a.at - b.at);
 
-  const result: { count: number, interval: [WeeklyTime, WeeklyTime | undefined] }[] = [];
-  for (let i = 0; i < intervalEvents.length; i++) {
-    const event = intervalEvents[i]!;
-    // Close the last interval
-    const lastInterval = result[result.length - 1];
-    if (lastInterval) {
-      lastInterval.interval[1] = event.at;
-    }
+	const result: {count: number; interval: [WeeklyTime, WeeklyTime | undefined]}[] = [];
+	for (const event of intervalEvents) {
+		// Close the last interval
+		const lastInterval = result[result.length - 1];
+		if (lastInterval) {
+			lastInterval.interval[1] = event.at;
+		}
 
-    result.push({
-      count: (lastInterval?.count ?? 0) + (event.type === 'start' ? 1 : -1),
-      interval: [event.at, undefined],
-    });
-  }
+		result.push({
+			count: (lastInterval?.count ?? 0) + (event.type === 'start' ? 1 : -1),
+			interval: [event.at, undefined],
+		});
+	}
 
-  return (result as IntervalOverlapResult[]).filter((i) => i.count > 0 && i.interval[1] > i.interval[0]);
+	return (result as IntervalOverlapResult[]).filter((i) => i.count > 0 && i.interval[1] > i.interval[0]);
 };
 
 /** Subtract blocked intervals from availability intervals.
  * Returns new availability with blocked times removed. */
 export function subtractIntervals(
-  availability: Interval[],
-  blocked: Interval[],
+	availability: Interval[],
+	blocked: Interval[],
 ): Interval[] {
-  if (blocked.length === 0) return availability;
+	if (blocked.length === 0) {
+		return availability;
+	}
 
-  const result: Interval[] = [];
+	const result: Interval[] = [];
 
-  /* eslint-disable no-restricted-syntax */
-  for (const [availStart, availEnd] of availability) {
-    let remaining: Interval[] = [[availStart, availEnd]];
+	for (const [availStart, availEnd] of availability) {
+		let remaining: Interval[] = [[availStart, availEnd]];
 
-    for (const [blockStart, blockEnd] of blocked) {
-      const newRemaining: Interval[] = [];
+		for (const [blockStart, blockEnd] of blocked) {
+			const newRemaining: Interval[] = [];
 
-      for (const [remStart, remEnd] of remaining) {
-        // No overlap - keep the interval
-        if (blockEnd <= remStart || blockStart >= remEnd) {
-          newRemaining.push([remStart, remEnd]);
-        } else {
-          // Some overlap
-          if (remStart < blockStart) {
-            newRemaining.push([remStart, blockStart]);
-          }
-          if (remEnd > blockEnd) {
-            newRemaining.push([blockEnd, remEnd]);
-          }
-        }
-      }
+			for (const [remStart, remEnd] of remaining) {
+				// No overlap - keep the interval
+				if (blockEnd <= remStart || blockStart >= remEnd) {
+					newRemaining.push([remStart, remEnd]);
+				} else {
+					// Some overlap
+					if (remStart < blockStart) {
+						newRemaining.push([remStart, blockStart]);
+					}
 
-      remaining = newRemaining;
-    }
+					if (remEnd > blockEnd) {
+						newRemaining.push([blockEnd, remEnd]);
+					}
+				}
+			}
 
-    result.push(...remaining);
-  }
+			remaining = newRemaining;
+		}
 
-  return result;
+		result.push(...remaining);
+	}
+
+	return result;
 }

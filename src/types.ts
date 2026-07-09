@@ -1,4 +1,4 @@
-export type Brand<K, T> = K & { __brand: T };
+export type Brand<K, T> = K & {__brand: T};
 
 /**
  * Minutes since start the UTC start of the week
